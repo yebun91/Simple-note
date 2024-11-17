@@ -1,58 +1,57 @@
 import { useState } from "react";
-import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Button, FlatList, StyleSheet, View } from "react-native";
+import GoalInput from "./components/GoalInput";
+import GoalItem from "./components/GoalItem";
+import { StatusBar } from "expo-status-bar";
 
-type Goal = {
+export type Goal = {
   text: string;
   id: string;
 };
 
 export default function App() {
-  const [value, setValue] = useState("");
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [modalIsVisible, setModalVisible] = useState(false);
 
-  const goalInputGandler = (text: string) => {
-    setValue(text);
+  const goalInputHandler = () => {
+    setModalVisible((prev) => !prev);
   };
 
-  const addGoalHandler = () => {
-    setGoals((prev) => [
-      ...prev,
-      { text: value, id: Math.random().toString() },
-    ]);
+  const addGoal = (goal: Goal) => {
+    setGoals((prev) => [...prev, goal]);
+  };
+
+  const deleteGoal = (goal: Goal) => {
+    setGoals((prev) => prev.filter((prevGoal) => prevGoal.id !== goal.id));
   };
 
   return (
-    <View style={styles.appContainer}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="your course goal!"
-          onChangeText={goalInputGandler}
-          value={value}
+    <>
+      <StatusBar style="light" />
+      <View style={styles.appContainer}>
+        <Button
+          title="Add New Goal"
+          color="#a06be6"
+          onPress={goalInputHandler}
         />
-        <Button title="Add Goal" onPress={addGoalHandler} />
+        {modalIsVisible && (
+          <GoalInput
+            visible={modalIsVisible}
+            addGoal={addGoal}
+            goalInputHandler={goalInputHandler}
+          />
+        )}
+        <View style={styles.goalsContainer}>
+          <FlatList
+            data={goals}
+            keyExtractor={(item) => item.id}
+            renderItem={(items) => (
+              <GoalItem item={items.item} deleteGoal={deleteGoal} />
+            )}
+          />
+        </View>
       </View>
-      <View style={styles.goalsContainer}>
-        <FlatList
-          data={goals}
-          keyExtractor={(item) => item.id}
-          renderItem={(items) => {
-            return (
-              <View style={styles.goalItem}>
-                <Text style={styles.goalItemText}>{items.item.text}</Text>
-              </View>
-            );
-          }}
-        />
-      </View>
-    </View>
+    </>
   );
 }
 
@@ -62,32 +61,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 16,
   },
-  inputContainer: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#cccccc",
-    width: "70%",
-    marginRight: 8,
-    padding: 8,
-  },
   goalsContainer: {
     flex: 5,
-  },
-  goalItem: {
-    margin: 8,
-    borderRadius: 6,
-    backgroundColor: "#5e0acc",
-    padding: 8,
-  },
-  goalItemText: {
-    color: "white",
   },
 });
